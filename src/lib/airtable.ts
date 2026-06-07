@@ -4,11 +4,11 @@ import { env } from "./env";
 let cachedBase: Base | null = null;
 
 function getBase() {
-  if (!env.AIRTABLE_API_KEY || !env.AIRTABLE_BASE_ID) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID) {
     throw new Error("Airtable no esta configurado.");
   }
 
-  cachedBase ??= new Airtable({ apiKey: env.AIRTABLE_API_KEY }).base(
+  cachedBase ??= new Airtable({ apiKey: env.AIRTABLE_TOKEN }).base(
     env.AIRTABLE_BASE_ID
   );
 

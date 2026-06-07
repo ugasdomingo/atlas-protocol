@@ -30,6 +30,8 @@ cp .env.example .env.local
 
 Rellena MongoDB, Stripe, Cloudinary, Resend, sesion, cron y URL publica.
 
+Si vuelves a activar el agente de contenido con Airtable, usa `AIRTABLE_TOKEN` con un Personal Access Token, no una API key legacy. El token debe tener acceso a la base configurada en `AIRTABLE_BASE_ID` y, como minimo, scopes `data.records:read` y `data.records:write` para la tabla `Posts`.
+
 ### 2. Contenido
 
 Coloca los archivos en `content/`:

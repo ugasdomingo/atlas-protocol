@@ -35,7 +35,7 @@ const envSchema = z.object({
 
   // Publicación + memoria
   BUFFER_ACCESS_TOKEN: z.preprocess(emptyToUndefined, z.string().optional()),
-  AIRTABLE_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  AIRTABLE_TOKEN: z.preprocess(emptyToUndefined, z.string().optional()),
   AIRTABLE_BASE_ID: z.preprocess(emptyToUndefined, z.string().optional()),
 
   // Crons
