@@ -1,99 +1,106 @@
 # Protocolo Atlas
 
-Landing de conversion + lead magnet gratuito + seguimiento a 3 dias + venta de paquete digital con biblioteca protegida por OTP.
+Landing de venta para Protocolo Atlas: PDF gratuito, seguimiento por email a 3 dias, compra con Stripe y biblioteca privada para descargar PDFs/audios.
 
-## Stack
+## Que hace
 
-- Next.js 15 (App Router) en Vercel
-- MongoDB Atlas para leads, ventas, accesos y productos
-- Cloudinary para PDFs/MP3 con URLs firmadas
-- Stripe para pagos y webhooks
-- Resend para emails HTML transaccionales y comerciales
-- iron-session para sesiones seguras
+- Captura nombre, email y consentimiento para enviar el PDF gratuito.
+- Guarda leads, ventas y accesos en MongoDB Atlas.
+- Envia emails con Resend.
+- Cobra el paquete pago con Stripe Checkout.
+- Entrega PDFs y audios desde Cloudinary con URLs firmadas.
+- Permite volver a entrar a la biblioteca con email + codigo OTP.
+- Ejecuta un cron diario para enviar el follow-up comercial 3 dias despues.
 
-## Flujo comercial
+## Stack necesario
 
-1. El visitante deja nombre, email y consentimiento de marketing.
-2. La app guarda el lead en MongoDB y envia el PDF gratuito por Resend.
-3. Tres dias despues, el cron `/api/cron/follow-up` envia el email de seguimiento y oferta.
-4. Si compra el paquete de $47 USD, Stripe dispara el webhook.
-5. El webhook registra la venta, crea el acceso y marca el lead como convertido.
-6. El comprador entra a `/acceso` con email + OTP y descarga PDFs/MP3 desde `/biblioteca`.
+- Next.js 15 en Vercel
+- MongoDB Atlas
+- Cloudinary
+- Stripe
+- Resend
 
-## Setup
+## Variables de entorno
 
-### 1. Variables de entorno
+```env
+MONGODB_URI=
+MONGODB_DB=protocolo_atlas
 
-```bash
-cp .env.example .env.local
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+LEAD_MAGNET_PUBLIC_ID=protocolo-atlas/estrategia-3-dias
+LEAD_MAGNET_FILENAME=Estrategia gratuita 3 dias.pdf
+
+RESEND_API_KEY=
+EMAIL_FROM=Protocolo Atlas <noreply@protocoloatlas.com>
+
+IRON_SESSION_PASSWORD=
+ADMIN_EMAIL=
+
+CRON_SECRET=
+TAX_RATE_PCT=19
+NEXT_PUBLIC_APP_URL=https://tu-dominio.com
 ```
 
-Rellena MongoDB, Stripe, Cloudinary, Resend, sesion, cron y URL publica.
+`IRON_SESSION_PASSWORD` y `CRON_SECRET` deben tener minimo 32 caracteres.
 
-Si vuelves a activar el agente de contenido con Airtable, usa `AIRTABLE_TOKEN` con un Personal Access Token, no una API key legacy. El token debe tener acceso a la base configurada en `AIRTABLE_BASE_ID` y, como minimo, scopes `data.records:read` y `data.records:write` para la tabla `Posts`.
+## Contenido
 
-### 2. Contenido
+Coloca los archivos fuente en `content/`:
 
-Coloca los archivos en `content/`:
-
-- `estrategia-3-dias.pdf` para el lead magnet gratuito
+- `estrategia-3-dias.pdf`
 - `en-realidad-amo.pdf`
 - `hombre-proveedor.pdf`
-- cualquier audio `.mp3` del paquete pago
+- audios `.mp3`
 
-Sube todo a Cloudinary:
+Sube los assets a Cloudinary:
 
 ```bash
 npm run upload-content
 ```
 
-El lead magnet usa por defecto:
-
-```env
-LEAD_MAGNET_PUBLIC_ID=protocolo-atlas/estrategia-3-dias
-LEAD_MAGNET_FILENAME=Estrategia gratuita 3 dias.pdf
-```
-
-### 3. Base de datos y producto
+Crea indices y producto en MongoDB:
 
 ```bash
 npm run seed
 ```
 
-El script crea indices, guarda el producto pago y detecta automaticamente los MP3 presentes en `content/`.
+Los MP3 en `content/` se detectan automaticamente y se agregan al producto pago.
 
-### 4. Desarrollo local
-
-En Windows usa:
-
-```bash
-npm.cmd run dev
-```
-
-### 5. Produccion
+## Produccion
 
 1. Importa el repo en Vercel.
-2. Configura las variables de `.env.example`.
-3. Configura el dominio en Vercel.
-4. Configura el webhook Stripe en `https://TU-DOMINIO/api/stripe/webhook` escuchando `checkout.session.completed`.
-5. Configura dominio verificado en Resend para `EMAIL_FROM`.
-6. Cambia `NEXT_PUBLIC_APP_URL=https://TU-DOMINIO`.
-
-## Cron
-
-`vercel.json` ejecuta diariamente:
+2. Configura las variables de entorno.
+3. Configura el webhook Stripe:
 
 ```text
-/api/cron/follow-up
+https://TU-DOMINIO/api/stripe/webhook
 ```
 
-El endpoint requiere `Authorization: Bearer CRON_SECRET`.
+Evento:
 
-## Verificacion antes de vender
+```text
+checkout.session.completed
+```
 
-- `npm.cmd run build`
-- enviar un lead real y confirmar que llega el PDF
-- adelantar un lead en MongoDB o ejecutar el cron manualmente para probar el follow-up
-- hacer compra Stripe en test/live
-- verificar venta en `/admin`
-- entrar a `/biblioteca` y descargar PDFs/MP3
+4. Verifica dominio en Resend para `EMAIL_FROM`.
+5. Sube contenido a Cloudinary y corre `npm run seed`.
+
+## Verificacion
+
+```bash
+npm run build
+```
+
+Luego prueba:
+
+- enviar el PDF gratuito
+- recibir el email
+- comprar con Stripe test
+- entrar a `/acceso`
+- descargar desde `/biblioteca`

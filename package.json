@@ -10,10 +10,6 @@
     "upload-content": "npx tsx scripts/upload-content.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.98.0",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0",
-    "airtable": "^0.12.2",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
@@ -23,7 +19,6 @@
     "lucide-react": "^1.16.0",
     "mongodb": "^7.2.0",
     "next": "^15.5.18",
-    "openai": "^6.39.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "resend": "^6.12.3",
