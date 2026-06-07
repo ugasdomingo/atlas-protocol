@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
+import { checkRateLimit, rateLimitKey, rateLimitResponse } from "@/lib/rate-limit";
 
 const schema = z.object({
   productSlug: z.string().min(1),
@@ -11,6 +12,14 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const body = schema.parse(await req.json());
+    const checkoutLimit = await checkRateLimit({
+      key: rateLimitKey(req, "checkout:ip"),
+      limit: 20,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (!checkoutLimit.allowed) {
+      return rateLimitResponse(checkoutLimit.retryAfter);
+    }
 
     const db = await getDb();
     const product = await db

@@ -63,6 +63,10 @@ async function main() {
     followUpSentAt: 1,
     followUpDueAt: 1,
   });
+  await db.collection("rate_limits").createIndex(
+    { resetAt: 1 },
+    { expireAfterSeconds: 0 }
+  );
 
   await db.collection("products").updateOne(
     { slug: PRODUCT.slug },

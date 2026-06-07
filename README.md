@@ -11,6 +11,7 @@ Landing de venta para Protocolo Atlas: PDF gratuito, seguimiento por email a 3 d
 - Entrega PDFs y audios desde Cloudinary con URLs firmadas.
 - Permite volver a entrar a la biblioteca con email + codigo OTP.
 - Ejecuta un cron diario para enviar el follow-up comercial 3 dias despues.
+- Protege formularios, OTP y checkout con rate limiting en MongoDB.
 
 ## Stack necesario
 
@@ -19,6 +20,8 @@ Landing de venta para Protocolo Atlas: PDF gratuito, seguimiento por email a 3 d
 - Cloudinary
 - Stripe
 - Resend
+
+No usa IA, Airtable, Runway, Buffer ni Redis.
 
 ## Variables de entorno
 

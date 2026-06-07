@@ -4,11 +4,13 @@ import { getDb } from "@/lib/db";
 import { env } from "@/lib/env";
 import { getSignedUrl } from "@/lib/cloudinary";
 import { sendLeadMagnetEmail } from "@/lib/resend";
+import { checkRateLimit, rateLimitKey, rateLimitResponse } from "@/lib/rate-limit";
 
 const schema = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.string().email().transform((email) => email.toLowerCase().trim()),
   consentMarketing: z.literal(true),
+  website: z.string().max(0).optional().or(z.literal("")),
 });
 
 function followUpDate() {
@@ -25,7 +27,28 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, email, consentMarketing } = body.data;
+    const { name, email, consentMarketing, website } = body.data;
+    if (website) {
+      return NextResponse.json({
+        success: true,
+        message: "Te enviamos el PDF a tu correo.",
+      });
+    }
+
+    const ipLimit = await checkRateLimit({
+      key: rateLimitKey(req, "lead:ip"),
+      limit: 8,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!ipLimit.allowed) return rateLimitResponse(ipLimit.retryAfter);
+
+    const emailLimit = await checkRateLimit({
+      key: rateLimitKey(req, "lead:email", email),
+      limit: 3,
+      windowMs: 24 * 60 * 60 * 1000,
+    });
+    if (!emailLimit.allowed) return rateLimitResponse(emailLimit.retryAfter);
+
     const now = new Date();
     const db = await getDb();
 

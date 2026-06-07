@@ -38,6 +38,7 @@ export default function LandingPage() {
         name: leadName,
         email: leadEmail,
         consentMarketing,
+        website: "",
       }),
     });
 
@@ -174,6 +175,15 @@ export default function LandingPage() {
                   className="w-full border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-neutral-700 focus:border-white"
                 />
               </label>
+
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
 
               <label className="flex gap-3 text-sm leading-5 text-neutral-400">
                 <input

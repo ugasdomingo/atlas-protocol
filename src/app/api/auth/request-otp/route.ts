@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { generateOtp, hashOtp, otpExpiresAt, canSendOtp } from "@/lib/otp";
 import { sendOtpEmail } from "@/lib/resend";
+import { checkRateLimit, rateLimitKey, rateLimitResponse } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email().transform((e) => e.toLowerCase().trim()),
@@ -20,6 +21,20 @@ export async function POST(req: Request) {
     }
 
     const { email } = body.data;
+    const ipLimit = await checkRateLimit({
+      key: rateLimitKey(req, "otp-request:ip"),
+      limit: 12,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!ipLimit.allowed) return rateLimitResponse(ipLimit.retryAfter);
+
+    const emailLimit = await checkRateLimit({
+      key: rateLimitKey(req, "otp-request:email", email),
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!emailLimit.allowed) return rateLimitResponse(emailLimit.retryAfter);
+
     const db = await getDb();
     const access = await db.collection("access").findOne({ email });
 

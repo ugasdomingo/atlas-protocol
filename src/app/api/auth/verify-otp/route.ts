@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { verifyOtp, isOtpExpired, OTP_MAX_ATTEMPTS } from "@/lib/otp";
 import { getSession } from "@/lib/session";
 import { env } from "@/lib/env";
+import { checkRateLimit, rateLimitKey, rateLimitResponse } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email().transform((e) => e.toLowerCase().trim()),
@@ -18,6 +19,20 @@ export async function POST(req: Request) {
     }
 
     const { email, otp } = body.data;
+    const ipLimit = await checkRateLimit({
+      key: rateLimitKey(req, "otp-verify:ip"),
+      limit: 30,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (!ipLimit.allowed) return rateLimitResponse(ipLimit.retryAfter);
+
+    const emailLimit = await checkRateLimit({
+      key: rateLimitKey(req, "otp-verify:email", email),
+      limit: 10,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (!emailLimit.allowed) return rateLimitResponse(emailLimit.retryAfter);
+
     const db = await getDb();
     const access = await db.collection("access").findOne({ email });
 
